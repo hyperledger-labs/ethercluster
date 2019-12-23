@@ -1,0 +1,78 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mordor-parity 
+  namespace: ethercluster
+  labels:
+    app: mordor-parity
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: mordor-parity
+  serviceName: mordor-parity
+  template:
+    metadata:
+      name: mordor-parity
+      labels:
+        app: mordor-parity
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: parity
+          image: "parity/parity:v2.6.6-beta"
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
+          args:
+          - "--chain=mordor"
+          - "--base-path=/mordor-parity-data"
+          - "--db-path=/mordor-parity-data/chains" 
+          - "--keys-path=/mordor-parity-data/keys"
+          - "--nat=extip:35.238.101.58"
+          ports:
+            - containerPort: 8545 
+              protocol: TCP
+              name: rpc-port
+          resources:
+            requests:
+              cpu: "500m"
+            limits:
+              cpu: "1000m"
+          volumeMounts:
+            - name: mordor-parity-config
+              mountPath: /mordor-parity-config
+              readOnly: true
+            - name: mordor-parity-data
+              mountPath: /mordor-parity-data
+        - name: ethnetintel
+          image: kairen/ethnetintel
+          env:
+          - name: NAME_PREFIX
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: WS_SERVER
+            value: "classic-stats.default.svc.cluster.local:3000"
+          - name: WS_SECRET
+            value: "12qw34er"
+          - name: RPC_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: RPC_PORT
+            value: "8545"
+      volumes:
+      - name: mordor-parity-config
+        secret:
+          secretName: mordor-parity-config
+  volumeClaimTemplates:
+    - metadata:
+        name: mordor-parity-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "mordor-parity-ssd"
+        resources:
+          requests:
+            storage: 50Gi

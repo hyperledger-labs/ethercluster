@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kotti-stats
+  namespace: ethercluster
+  labels:
+    app: kotti-stats
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: kotti-stats
+  template:
+    metadata:
+      name: kotti-stats
+      labels:
+        app: kotti-stats
+    spec:
+      containers:
+      - name: ethstats
+        image: etccoop/ethstats
+        env:
+        - name: WS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: kotti-stats
+              key: WS_SECRET
+        ports:
+        - containerPort: 3000

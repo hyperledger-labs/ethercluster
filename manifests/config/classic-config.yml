@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: classic-config
+    namespace: ethercluster
+data:
+    config.toml: |-
+        [parity]
+        chain = "classic"
+        base_path = "/parity-data"
+        db_path = "/parity-data/chains"
+        keys_path = "/parity-data/keys"
+        max-peers = 250
+        snapshot-peers = 50
+        no-ancient-blocks = true
+        no-serve-light = true
+
+        [ui]
+        disable = true
+
+        [rpc]
+        disable = false
+        port = 8545
+        interface = "0.0.0.0"
+        cors = "null"
+        apis = ["web3", "eth", "net", "rpc", "parity"]
+        hosts = ["all"]

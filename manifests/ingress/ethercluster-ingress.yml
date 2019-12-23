@@ -1,0 +1,72 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+    name: ingress-ethercluster
+    namespace: ethercluster
+    annotations:
+        kubernetes.io/ingress.global-static-ip-name: ethercluster-address
+        kubernetes.io/ingress.allow-http: "false"
+        kubernetes.io/ingress.class: "gce"
+        nginx.org/websocket-services: "ws-svc"
+        ingress.kubernetes.io/enable-cors: "true"
+        nginx.ingress.kubernetes.io/connection-proxy-header: "keep-alive"
+spec:
+    tls:
+      - hosts:
+        - www.ethercluster.com
+        secretName: tls-classic
+    backend:
+      serviceName: ethercluster-site
+      servicePort: 8080
+    rules:
+    - host: www.ethercluster.com
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: ethercluster-site 
+            servicePort: 8080
+        - path: /etc
+          backend:
+            serviceName: classic 
+            servicePort: 8545
+        - path: /kotti
+          backend:
+            serviceName: kotti
+            servicePort: 8545
+	- path: /mordor
+          backend:
+            serviceName: mordor-parity-rpc
+            servicePort: 8545
+        - path: /eth
+          backend:
+            serviceName: ethereum
+            servicePort: 8545
+        - path: /goerli
+          backend:
+            serviceName: goerli
+            servicePort: 8545
+        - path: /etc-stats
+          backend:
+            serviceName: classic-stats
+            servicePort: 80
+        - path: /kotti-stats
+          backend:
+            serviceName: kotti-stats
+            servicePort: 80
+        - path: /ws-etc
+          backend:
+            serviceName: classic
+            servicePort: 8546
+        - path: /ws-kotti
+          backend:
+            serviceName: kotti
+            servicePort: 8546
+        - path: /ws-mordor
+          backend:
+            serviceName: mordor-parity-rpc
+            servicePort: 8546
+	- path: /ws-eth
+          backend:
+            serviceName: ethereum
+            servicePort: 8546

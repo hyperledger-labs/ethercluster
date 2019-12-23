@@ -1,0 +1,98 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: kotti 
+  namespace: ethercluster 
+  labels:
+    app: kotti
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: kotti
+  serviceName: kotti
+  template:
+    metadata:
+      name: kotti
+      labels:
+        app: kotti
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: parity
+          image: "parity/parity:v2.6.5-beta"
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
+          args:
+          - "--chain=kotti"
+          - "--base-path=/kotti-data"
+          - "--db-path=/kotti-data/chains" 
+          - "--keys-path=/kotti-data/keys"
+          - "--jsonrpc-port=8545"
+          - "--jsonrpc-interface=0.0.0.0"
+          - "--jsonrpc-apis=web3,eth,net,rpc,parity"
+          - "--jsonrpc-hosts=all"
+          - "--jsonrpc-cors=all"
+          - "--ws-interface=0.0.0.0" 
+          - "--ws-apis=web3,eth,net,rpc,parity"
+          - "--ws-origins=all" 
+          - "--ws-hosts=all"
+          - "--ws-port=8546"
+          ports:
+            - containerPort: 8545
+              protocol: TCP
+              name: rpc-port
+            - containerPort: 8546
+              protocol: TCP
+              name: ws-port
+            - containerPort: 443
+              protocol: TCP
+              name: https
+          readinessProbe:
+            httpGet:
+              port: 8545
+              path: /api/health
+            initialDelaySeconds: 1800
+            periodSeconds: 60
+          livenessProbe:
+            httpGet:
+              port: 8545
+              path: /api/health
+            initialDelaySeconds: 1800
+            periodSeconds: 60
+          volumeMounts:
+            - name: kotti-data
+              mountPath: /kotti-data
+        - name: ethnetintel
+          image: etccoop/ethnetintel
+          env:
+          - name: NAME_PREFIX
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: WS_SERVER
+            value: kotti-stats.dcp 
+          - name: WS_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: kotti-stats
+                key: WS_SECRET
+          - name: RPC_HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: RPC_PORT
+            value: "8545"
+      volumes:
+      - name: kotti-data
+  volumeClaimTemplates:
+    - metadata:
+        name: kotti-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "kotti-ssd"
+        resources:
+          requests:
+            storage: 30Gi
