@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: classic-stats
+  namespace: ethercluster
+  labels:
+    app: classic-stats
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: classic-stats
+  template:
+    metadata:
+      name: classic-stats
+      labels:
+        app: classic-stats
+    spec:
+      containers:
+      - name: ethstats
+        image: ethereumex/eth-stats-dashboard:latest 
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: WS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: classic-stats
+              key: WS_SECRET
+        ports:
+        - containerPort: 3000
