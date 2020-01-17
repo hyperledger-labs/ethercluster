@@ -8,3 +8,4 @@ parameters:
   type: pd-ssd
   zones: us-central1-c
 reclaimPolicy: Retain
+allowVolumeExpansion: true
