@@ -17,10 +17,14 @@ spec:
       labels:
         app: classic-besu
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: besu
           image: "hyperledger/besu:latest"
           imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
           args: 
           - "--network=classic"
           - "--data-path=/classic-besu-data"
@@ -41,10 +45,10 @@ spec:
             httpGet:
               port: 8545
               path: /readiness
-            initialDelaySeconds: 9000 
+            initialDelaySeconds: 9000
             periodSeconds: 1800
           livenessProbe:
-            tcpSocket:
+            httpGet:
               port: 8545
               path: /liveness
             initialDelaySeconds: 9000
@@ -52,28 +56,8 @@ spec:
           volumeMounts:
             - name: classic-besu-data
               mountPath: /classic-besu-data
-        - name: ethnetintel
-          image: etccoop/ethnetintel
-          env:
-          - name: NAME_PREFIX
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: WS_SERVER
-            value: classic-besu-stats.dcp
-          - name: WS_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: classic-besu-stats
-                key: WS_SECRET
-          - name: RPC_HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: RPC_PORT
-            value: "8545"
-    volumes:
-      - name: classic-besu-data
+      volumes:
+       - name: classic-besu-data
   volumeClaimTemplates:
     - metadata:
         name: classic-besu-data
@@ -82,4 +66,4 @@ spec:
         storageClassName: "classic-besu-ssd"
         resources:
           requests:
-            storage: 50Gi
+            storage: 150Gi
