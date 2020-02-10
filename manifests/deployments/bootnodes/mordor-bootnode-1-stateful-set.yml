@@ -38,11 +38,6 @@ spec:
             - containerPort: 8545
               protocol: TCP
               name: rpc-port
-          resources:
-            requests:
-              cpu: "500m"
-            limits:
-              cpu: "1000m"
           volumeMounts:
             - name: mordor-bootnode-1-data
               mountPath: /mordor-bootnode-1-data
