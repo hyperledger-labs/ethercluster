@@ -1,0 +1,82 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  name: mordor-bootnode-3
+  namespace: ethercluster
+  labels:
+    app: mordor-bootnode-3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mordor-bootnode-3
+  serviceName: mordor-bootnode-3
+  template:
+    metadata:
+      name: mordor-bootnode-3
+      labels:
+        app: mordor-bootnode-3
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: parity
+          image: "parity/parity:v2.7.2-stable"
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 1000
+          args:
+          - "--chain=mordor"
+          - "--base-path=/mordor-bootnode-3-data"
+          - "--db-path=/mordor-bootnode-3-data/chains"
+          - "--keys-path=/mordor-bootnode-3-data/keys"
+          - "--nat=extip:34.68.243.226"
+          - "--reserved-peers=/reserved-peers/reserved_peers.txt"
+          - "--min-peers=256"
+          - "--max-peers=1024"
+          ports:
+            - containerPort: 8545
+              protocol: TCP
+              name: rpc-port
+          resources:
+            requests:
+              cpu: "500m"
+            limits:
+              cpu: "1000m"
+          volumeMounts:
+            - name: mordor-bootnode-3-data
+              mountPath: /mordor-bootnode-3-data
+            - name: reserved-peers
+              mountPath: /reserved-peers
+              readOnly: true
+        #- name: ethnetintel
+        #  image: kairen/ethnetintel
+        #  env:
+        #  - name: NAME_PREFIX
+        #    valueFrom:
+        #      fieldRef:
+        #        fieldPath: metadata.name
+        #  - name: WS_SERVER
+        #    value: "classic-stats.default.svc.cluster.local:3000"
+        #  - name: WS_SECRET
+        #    value: "12qw34er"
+        #  - name: RPC_HOST
+        #    valueFrom:
+        #      fieldRef:
+        #        fieldPath: status.podIP
+        #  - name: RPC_PORT
+        #    value: "8545"
+      volumes:
+       - name: mordor-bootnode-3-data
+       - name: reserved-peers
+         secret:
+           secretName: reserved-peers
+  volumeClaimTemplates:
+    - metadata:
+        name: mordor-bootnode-3-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: "mordor-bootnode-3-ssd"
+        resources:
+          requests:
+            storage: 50Gi
