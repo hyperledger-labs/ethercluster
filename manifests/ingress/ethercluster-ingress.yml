@@ -34,9 +34,9 @@ spec:
           backend:
             serviceName: kotti
             servicePort: 8545
-	- path: /mordor
+        - path: /mordor
           backend:
-            serviceName: mordor-parity-rpc
+            serviceName: mordor
             servicePort: 8545
         - path: /eth
           backend:

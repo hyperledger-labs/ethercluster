@@ -1,21 +1,21 @@
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
-  name: mordor-parity-rpc 
+  name: mordor
   namespace: ethercluster
   labels:
-    app: mordor-parity-rpc
+    app: mordor
 spec:
-  replicas: 2 
+  replicas: 1
   selector:
     matchLabels:
-      app: mordor-parity-rpc
-  serviceName: mordor-parity-rpc
+      app: mordor
+  serviceName: mordor
   template:
     metadata:
-      name: mordor-parity-rpc
+      name: mordor
       labels:
-        app: mordor-parity-rpc
+        app: mordor
     spec:
       securityContext:
         fsGroup: 1000
@@ -27,10 +27,9 @@ spec:
             runAsUser: 1000
           args:
           - "--chain=mordor"
-          - "--base-path=/mordor-parity-rpc-data"
-          - "--db-path=/mordor-parity-rpc-data/chains" 
-          - "--keys-path=/mordor-parity-rpc-data/keys"
-          - "--port=30000"
+          - "--base-path=/mordor-data"
+          - "--db-path=/mordor-data/chains"
+          - "--keys-path=/mordor-data/keys"
           - "--jsonrpc-port=8545"
           - "--jsonrpc-interface=0.0.0.0"
           - "--jsonrpc-apis=web3,eth,net,rpc,parity"
@@ -45,7 +44,7 @@ spec:
           - "--ws-hosts=all"
           - "--ws-port=8546"
           ports:
-            - containerPort: 8545 
+            - containerPort: 8545
               protocol: TCP
               name: rpc-port
             - containerPort: 8546
@@ -60,38 +59,33 @@ spec:
             limits:
               cpu: "1000m"
           volumeMounts:
-            - name: mordor-parity-rpc-config
-              mountPath: /mordor-parity-rpc-config
-              readOnly: true
-            - name: mordor-parity-rpc-data
-              mountPath: /mordor-parity-rpc-data
-        - name: ethnetintel
-          image: kairen/ethnetintel
-          env:
-          - name: NAME_PREFIX
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: WS_SERVER
-            value: mordor-stats.dcp
-          - name: WS_SECRET
-            value: "12qw34er"
-          - name: RPC_HOST
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-          - name: RPC_PORT
-            value: "8545"
+            - name: mordor-data
+              mountPath: /mordor-data
+        #- name: ethnetintel
+        #  image: kairen/ethnetintel
+        #  env:
+        #  - name: NAME_PREFIX
+        #    valueFrom:
+        #      fieldRef:
+        #        fieldPath: metadata.name
+        #  - name: WS_SERVER
+        #    value: mordor-stats.dcp
+        #  - name: WS_SECRET
+        #    value: "12qw34er"
+        #  - name: RPC_HOST
+        #    valueFrom:
+        #      fieldRef:
+        #        fieldPath: status.podIP
+        #  - name: RPC_PORT
+        #    value: "8545"
       volumes:
-      - name: mordor-parity-rpc-config
-        secret:
-          secretName: mordor-parity-rpc-config
+      - name: mordor-data
   volumeClaimTemplates:
     - metadata:
-        name: mordor-parity-rpc-data
+        name: mordor-data
       spec:
         accessModes: ["ReadWriteOnce"]
-        storageClassName: "mordor-parity-rpc-ssd"
+        storageClassName: "mordor-ssd"
         resources:
           requests:
-            storage: 50Gi
+            storage: 50Gi              
